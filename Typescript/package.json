@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "webpack": "npx webpack",
+    "build:frontend": "webpack -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
