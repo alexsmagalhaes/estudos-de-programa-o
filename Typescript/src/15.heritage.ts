@@ -1,9 +1,9 @@
 class Person {
   constructor(
-    public name: string,
-    public lastName: string,
-    private age: number,
-    protected cpf: string
+    public readonly name: string,
+    public readonly lastName: string,
+    private readonly age: number,
+    protected readonly cpf: string
   ) {}
 
   public getAge(): number {
@@ -20,8 +20,18 @@ class Person {
 }
 
 class Student extends Person {
+  constructor(
+    name: string,
+    lastName: string,
+    age: number,
+    cpf: string,
+    public school: string
+  ) {
+    super(name, lastName, age, cpf);
+  }
+
   public getFullName(): string {
-    return "Student" + this.name + " " + this.lastName;
+    return super.getFullName();
   }
 }
 
@@ -31,5 +41,5 @@ class Client extends Person {
   }
 }
 
-const student = new Student("Alex", "Magalhaes", 23, "000.000.000-00");
+const student = new Student("Alex", "Magalhaes", 23, "000.000.000-00", "EEEP");
 const client = new Client("Joao", "Silva", 42, "111.111.111-11");
