@@ -8,13 +8,21 @@ class Company {
     this.cnpj = cnpj;
   }
 
-  addEmployee(employ: Employee) {
+  public addEmployee(employ: Employee) {
     this.employee.push(employ);
+  }
+
+  public getName() {
+    return this.name;
   }
 }
 
 class Employee {
   constructor(public readonly name: string, public readonly lastName: string) {}
+
+  protected getName() {
+    return this.name;
+  }
 }
 
 const employ1 = new Employee("Joao", "Silva");
