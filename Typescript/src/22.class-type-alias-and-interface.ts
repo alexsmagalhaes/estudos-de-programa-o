@@ -1,16 +1,20 @@
-type Name = {
+interface Name {
   name: string;
-};
+}
 
-type LastName = {
+interface LastName {
   lastName: string;
-};
+}
 
 type FullName = {
   fullName: () => string;
 };
 
-class PersonClass implements Name, LastName, FullName {
+type PersonProps = Name & LastName & FullName;
+
+interface PersonProps2 extends Name, LastName, FullName {}
+
+class PersonClass implements PersonProps {
   constructor(public name: string, public lastName: string) {}
 
   fullName(): string {
