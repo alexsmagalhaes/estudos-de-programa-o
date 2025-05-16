@@ -1,0 +1,180 @@
+import pandas as pd
+
+class Metric():
+    def __init__(self, database, options):
+        self.__database = database
+        self.__options = options
+
+        pd.set_option('display.max_rows', self.__options["rows"]) 
+        pd.set_option('display.max_columns', self.__options["columns"])
+
+    def __read(self, sheet_name):
+        df = pd.read_excel(self.__database, sheet_name, engine="openpyxl")
+        df = df.iloc[1:]  # Remove a primeira linha, se necessário
+        return df
+
+    # 1. Total de vendas por categoria
+    def total_sales_by_category(self):
+        produtos = self.__read("CADASTRO_PRODUTOS")
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+
+        merged = produtos.merge(vendas, on="ID PRODUTO", how="left")
+        return (
+            merged.groupby("CATEGORIA")["VALOR ITEM"]
+            .sum()
+            .reset_index()
+            .sort_values(by="VALOR ITEM", ascending=False)
+        )
+
+    # 2. Margem de lucro dos produtos
+    def product_margin(self):
+        estoque = self.__read("CADASTRO ESTOQUE")
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+
+        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
+        vendas = vendas.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
+        vendas["VALOR VENDA UNITARIO"] = vendas["VALOR ITEM"] / vendas["QTD ITEM"]
+        vendas["MARGEM"] = vendas["VALOR VENDA UNITARIO"] - vendas["VALOR UNITARIO"]
+        return vendas[["ID PRODUTO", "VALOR UNITARIO", "VALOR VENDA UNITARIO", "MARGEM"]]
+
+    # 3. Ranking de clientes por quantidade comprada por mês
+    def client_ranking_by_month(self):
+        clientes = self.__read("CADASTRO CLIENTES")
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"], errors="coerce")
+        vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        agrupado = (
+            vendas.groupby(["ID CLIENTE", "ANO_MES"])["QTD ITEM"]
+            .sum()
+            .reset_index()
+        )
+        resultado = agrupado.merge(clientes, on="ID CLIENTE", how="left")
+        resultado = resultado.sort_values(by=["ANO_MES", "QTD ITEM"], ascending=[True, False])
+        resultado["RANKING"] = resultado.groupby("ANO_MES")["QTD ITEM"].rank(method="dense", ascending=False).astype(int)
+        return resultado[["ANO_MES", "RANKING", "NOME CLIENTE", "QTD ITEM"]]
+
+    # 4. Ranking de fornecedores por estoque disponível por mês
+    def supplier_ranking_by_stock_month(self):
+        estoque = self.__read("CADASTRO ESTOQUE")
+        fornecedores = self.__read("CADASTRO FORNECEDORES")
+        estoque["DATA ESTOQUE"] = pd.to_datetime(estoque["DATA ESTOQUE"])
+        estoque["ANO_MES"] = estoque["DATA ESTOQUE"].dt.to_period("M")
+        agrupado = estoque.groupby(["ID FORNECEDOR", "ANO_MES"])["QTD ESTOQUE"].sum().reset_index()
+        resultado = agrupado.merge(fornecedores, on="ID FORNECEDOR", how="left")
+        resultado = resultado.sort_values(by=["ANO_MES", "QTD ESTOQUE"], ascending=[True, False])
+        resultado["RANKING"] = resultado.groupby("ANO_MES")["QTD ESTOQUE"].rank(method="dense", ascending=False).astype(int)
+        return resultado[["ANO_MES", "RANKING", "NOME FORNECEDOR", "QTD ESTOQUE"]]
+
+    # 5. Ranking de produtos por quantidade vendida por mês
+    def product_sales_ranking_by_qty(self):
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"])
+        vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        agrupado = vendas.groupby(["ID PRODUTO", "ANO_MES"])["QTD ITEM"].sum().reset_index()
+        agrupado["RANKING"] = agrupado.groupby("ANO_MES")["QTD ITEM"].rank(method="dense", ascending=False).astype(int)
+        return agrupado.sort_values(by=["ANO_MES", "RANKING"])
+
+    # 6. Ranking de produtos por valor vendido por mês
+    def product_sales_ranking_by_value(self):
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"])
+        vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        agrupado = vendas.groupby(["ID PRODUTO", "ANO_MES"])["VALOR ITEM"].sum().reset_index()
+        agrupado["RANKING"] = agrupado.groupby("ANO_MES")["VALOR ITEM"].rank(method="dense", ascending=False).astype(int)
+        return agrupado.sort_values(by=["ANO_MES", "RANKING"])
+
+    # 7. Média de valor de venda por categoria por mês
+    def avg_sales_value_by_category_month(self):
+        produtos = self.__read("CADASTRO_PRODUTOS")
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"])
+        vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        merged = vendas.merge(produtos[["ID PRODUTO", "CATEGORIA"]], on="ID PRODUTO", how="left")
+        return (
+            merged.groupby(["CATEGORIA", "ANO_MES"])["VALOR ITEM"]
+            .mean()
+            .reset_index()
+            .rename(columns={"VALOR ITEM": "MEDIA VALOR VENDA"})
+        )
+
+    # 8. Ranking de margem de lucro por categoria
+    def margin_ranking_by_category(self):
+        estoque = self.__read("CADASTRO ESTOQUE")
+        produtos = self.__read("CADASTRO_PRODUTOS")
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+
+        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
+        produtos_estoque = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
+        transacoes = vendas.merge(produtos_estoque, on="ID PRODUTO", how="left")
+
+        transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
+        transacoes["MARGEM"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
+
+        resultado = transacoes.groupby("CATEGORIA")["MARGEM"].mean().reset_index().sort_values(by="MARGEM", ascending=False)
+        resultado["RANKING"] = resultado["MARGEM"].rank(method="dense", ascending=False).astype(int)
+        return resultado
+
+    # 9. Lista de produtos comprados por cliente
+    def products_bought_by_clients(self):
+        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        clientes = self.__read("CADASTRO CLIENTES")
+        produtos = self.__read("CADASTRO_PRODUTOS")
+
+        merged = vendas.merge(clientes, on="ID CLIENTE", how="left").merge(produtos, on="ID PRODUTO", how="left")
+        return merged[["NOME CLIENTE", "NOME PRODUTO", "QTD ITEM", "VALOR ITEM"]].sort_values(by="NOME CLIENTE")
+
+    # 10. Ranking de produtos por quantidade de estoque
+    def product_ranking_by_stock(self):
+        produtos = self.__read("CADASTRO_PRODUTOS")
+        estoque = self.__read("CADASTRO ESTOQUE")
+
+        merged = produtos.merge(estoque, on="ID ESTOQUE", how="left")
+        agrupado = merged.groupby("ID PRODUTO")[["NOME PRODUTO", "QTD ESTOQUE"]].max().reset_index()
+        agrupado["RANKING"] = agrupado["QTD ESTOQUE"].rank(method="dense", ascending=False).astype(int)
+        return agrupado.sort_values(by="RANKING")
+
+
+    #Determina o items mais lucrativos
+    def ranking_margin_by_category(self):
+        estoque = self.__read("estoque")
+        transacoes = self.__read("transacoes")
+        produtos = self.__read("produtos")
+
+        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
+        produtos = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
+        transacoes = transacoes.merge(produtos, on="ID PRODUTO", how="left")
+
+        transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
+        transacoes["MARGEM UNITARIA"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
+        transacoes["MARGEM TOTAL"] = transacoes["MARGEM UNITARIA"] * transacoes["QTD ITEM"]
+
+        resultado = transacoes.groupby("CATEGORIA").agg({
+            "MARGEM TOTAL": "sum",
+            "QTD ITEM": "sum"
+        }).reset_index()
+
+        resultado["MARGEM MÉDIA UNITÁRIA"] = resultado["MARGEM TOTAL"] / resultado["QTD ITEM"]
+        resultado = resultado.sort_values(by="MARGEM TOTAL", ascending=False)
+        return resultado
+
+    def ranking_margin_by_product(self):
+        estoque = self.__read("estoque")
+        transacoes = self.__read("transacoes")
+        produtos = self.__read("produtos")
+
+        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
+        produtos = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
+        transacoes = transacoes.merge(produtos, on="ID PRODUTO", how="left")
+
+        transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
+        transacoes["MARGEM UNITARIA"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
+        transacoes["MARGEM TOTAL"] = transacoes["MARGEM UNITARIA"] * transacoes["QTD ITEM"]
+
+        resultado = transacoes.groupby(["ID PRODUTO", "NOME PRODUTO"]).agg({
+            "MARGEM TOTAL": "sum",
+            "QTD ITEM": "sum"
+        }).reset_index()
+
+        resultado["MARGEM MÉDIA UNITÁRIA"] = resultado["MARGEM TOTAL"] / resultado["QTD ITEM"]
+        resultado = resultado.sort_values(by="MARGEM TOTAL", ascending=False)
+        return resultado
