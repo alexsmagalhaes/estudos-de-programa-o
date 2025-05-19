@@ -102,12 +102,20 @@ class Metric():
 
     # 5. Ranking de produtos por quantidade vendida por mês
     def product_sales_ranking_by_qty(self):
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        vendas = self.__read("vendas")
+        produtos = self.__read("produtos")
+
         vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"])
         vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+
         agrupado = vendas.groupby(["ID PRODUTO", "ANO_MES"])["QTD ITEM"].sum().reset_index()
         agrupado["RANKING"] = agrupado.groupby("ANO_MES")["QTD ITEM"].rank(method="dense", ascending=False).astype(int)
-        return agrupado.sort_values(by=["ANO_MES", "RANKING"])
+
+        resultado = agrupado.merge(produtos, on="ID PRODUTO", how="left")
+
+        return resultado[["ANO_MES", "RANKING", "NOME PRODUTO", "CATEGORIA", "QTD ITEM"]].sort_values(
+            by=["ANO_MES", "RANKING"]
+        )
 
     # 6. Ranking de produtos por valor vendido por mês
     def product_sales_ranking_by_value(self):
