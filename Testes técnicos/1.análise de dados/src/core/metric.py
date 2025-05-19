@@ -137,11 +137,14 @@ class Metric():
 
     # 7. Média de valor de venda por categoria por mês
     def avg_sales_value_by_category_month(self):
-        produtos = self.__read("CADASTRO_PRODUTOS")
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        produtos = self.__read("produtos")
+        vendas = self.__read("vendas")
+        
         vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"])
         vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        
         merged = vendas.merge(produtos[["ID PRODUTO", "CATEGORIA"]], on="ID PRODUTO", how="left")
+        
         return (
             merged.groupby(["CATEGORIA", "ANO_MES"])["VALOR ITEM"]
             .mean()

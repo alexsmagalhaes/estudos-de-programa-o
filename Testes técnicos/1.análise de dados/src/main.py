@@ -30,6 +30,9 @@ def main():
     #6
     Plot(data.product_sales_ranking_by_value(), options).table()
     
+    #7
+    Plot(data.avg_sales_value_by_category_month(), options).table()
+    
 
 if __name__ == "__main__": 
     main()
