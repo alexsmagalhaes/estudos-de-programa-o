@@ -36,6 +36,9 @@ def main():
     #8
     Plot(data.margin_ranking_by_category(), options).table()
     
+    #9
+    Plot(data.margin_ranking_by_category(), options).table()
+    
 
 if __name__ == "__main__": 
     main()

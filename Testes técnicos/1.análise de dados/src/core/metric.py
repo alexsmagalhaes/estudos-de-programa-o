@@ -172,11 +172,12 @@ class Metric():
 
     # 9. Lista de produtos comprados por cliente
     def products_bought_by_clients(self):
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
-        clientes = self.__read("CADASTRO CLIENTES")
-        produtos = self.__read("CADASTRO_PRODUTOS")
+        vendas = self.__read("vendas")
+        clientes = self.__read("clientes")
+        produtos = self.__read("produtos")
 
         merged = vendas.merge(clientes, on="ID CLIENTE", how="left").merge(produtos, on="ID PRODUTO", how="left")
+        
         return merged[["NOME CLIENTE", "NOME PRODUTO", "QTD ITEM", "VALOR ITEM"]].sort_values(by="NOME CLIENTE")
 
     # 10. Ranking de produtos por quantidade de estoque
