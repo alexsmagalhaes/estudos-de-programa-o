@@ -5,42 +5,54 @@ from core.plot import Plot
 def main():      
     #Opcoes de exibicao (numero de linhas e colunas a serem mostradas)
     options = {
-        "rows": 500,
+        "rows": 100,
         "columns": 100,
     }
     
     #Classe principal responsavel pelas operacoes entre os dados e apresentacao dos dados
     data = Metric("./database/data.xlsx", options)
     
-    #1
+    print("1. Total de vendas por categoria")
     Plot(data.total_sales_by_category(), options).table()
-    
-    #2
+    print()
+
+    print("2. Margem de lucro por produto")
     Plot(data.product_margin(), options).table()
-    
-    #3
+    print()
+
+    print("3. Ranking de clientes por mês")
     Plot(data.client_ranking_by_month(), options).table()
-    
-    #4
+    print()
+
+    print("4. Ranking de fornecedores por estoque no mês")
     Plot(data.supplier_ranking_by_stock_month(), options).table()
-    
-    #5
+    print()
+
+    print("5. Ranking de vendas por quantidade de produtos")
     Plot(data.product_sales_ranking_by_qty(), options).table()
-    
-    #6
+    print()
+
+    print("6. Ranking de vendas por valor de produtos")
     Plot(data.product_sales_ranking_by_value(), options).table()
-    
-    #7
+    print()
+
+    print("7. Valor médio de vendas por categoria e mês")
     Plot(data.avg_sales_value_by_category_month(), options).table()
-    
-    #8
+    print()
+
+    print("8. Ranking de margem por categoria")
     Plot(data.margin_ranking_by_category(), options).table()
-    
-    #9
+    print()
+
+    print("9. Produtos comprados por clientes")
     Plot(data.products_bought_by_clients(), options).table()
-    
-    #10
+    print()
+
+    print("10. Ranking de produtos por estoque")
     Plot(data.product_ranking_by_stock(), options).table()
+    print()
+
+
     
 
 if __name__ == "__main__": 
