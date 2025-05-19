@@ -21,5 +21,9 @@ def main():
     #3
     Plot(data.client_ranking_by_month(), options).table()
     
+    #4
+    Plot(data.supplier_ranking_by_stock_month(), options).table()
+    
+    
 if __name__ == "__main__": 
     main()

@@ -84,15 +84,21 @@ class Metric():
 
     # 4. Ranking de fornecedores por estoque disponível por mês
     def supplier_ranking_by_stock_month(self):
-        estoque = self.__read("CADASTRO ESTOQUE")
-        fornecedores = self.__read("CADASTRO FORNECEDORES")
+        estoque = self.__read("estoque")
+        fornecedores = self.__read("fornecedores")
+        
         estoque["DATA ESTOQUE"] = pd.to_datetime(estoque["DATA ESTOQUE"])
         estoque["ANO_MES"] = estoque["DATA ESTOQUE"].dt.to_period("M")
+        
         agrupado = estoque.groupby(["ID FORNECEDOR", "ANO_MES"])["QTD ESTOQUE"].sum().reset_index()
+        
         resultado = agrupado.merge(fornecedores, on="ID FORNECEDOR", how="left")
         resultado = resultado.sort_values(by=["ANO_MES", "QTD ESTOQUE"], ascending=[True, False])
         resultado["RANKING"] = resultado.groupby("ANO_MES")["QTD ESTOQUE"].rank(method="dense", ascending=False).astype(int)
-        return resultado[["ANO_MES", "RANKING", "NOME FORNECEDOR", "QTD ESTOQUE"]]
+        
+        return resultado[["ANO_MES", "RANKING", "NOME FORNECEDOR", "QTD ESTOQUE"]].sort_values(
+            by="QTD ESTOQUE", ascending=False
+        )
 
     # 5. Ranking de produtos por quantidade vendida por mês
     def product_sales_ranking_by_qty(self):
