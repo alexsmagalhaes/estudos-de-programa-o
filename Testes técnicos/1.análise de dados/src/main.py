@@ -10,13 +10,16 @@ def main():
     }
     
     #Classe principal responsavel pelas operacoes entre os dados e apresentacao dos dados
+    data = Metric("./database/data.xlsx", options)
     
     #1
-    data = Metric("./database/data.xlsx", options)
     Plot(data.total_sales_by_category(), options).table()
     
     #2
     Plot(data.product_margin(), options).table()
+    
+    #3
+    Plot(data.client_ranking_by_month(), options).table()
     
 if __name__ == "__main__": 
     main()

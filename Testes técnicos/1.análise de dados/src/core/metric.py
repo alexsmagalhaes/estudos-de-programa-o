@@ -62,19 +62,25 @@ class Metric():
 
     # 3. Ranking de clientes por quantidade comprada por mês
     def client_ranking_by_month(self):
-        clientes = self.__read("CADASTRO CLIENTES")
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        clientes = self.__read("clientes")
+        vendas = self.__read("vendas")
+        
         vendas["DATA NOTA"] = pd.to_datetime(vendas["DATA NOTA"], errors="coerce")
         vendas["ANO_MES"] = vendas["DATA NOTA"].dt.to_period("M")
+        
         agrupado = (
             vendas.groupby(["ID CLIENTE", "ANO_MES"])["QTD ITEM"]
             .sum()
             .reset_index()
         )
+        
         resultado = agrupado.merge(clientes, on="ID CLIENTE", how="left")
         resultado = resultado.sort_values(by=["ANO_MES", "QTD ITEM"], ascending=[True, False])
         resultado["RANKING"] = resultado.groupby("ANO_MES")["QTD ITEM"].rank(method="dense", ascending=False).astype(int)
-        return resultado[["ANO_MES", "RANKING", "NOME CLIENTE", "QTD ITEM"]]
+        
+        return resultado[["ANO_MES", "RANKING", "NOME CLIENTE", "QTD ITEM"]].sort_values(
+            by=["ANO_MES", "RANKING"], ascending=[True, True]
+        )
 
     # 4. Ranking de fornecedores por estoque disponível por mês
     def supplier_ranking_by_stock_month(self):
