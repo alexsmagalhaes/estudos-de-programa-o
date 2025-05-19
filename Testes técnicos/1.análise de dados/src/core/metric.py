@@ -152,21 +152,22 @@ class Metric():
             .rename(columns={"VALOR ITEM": "MEDIA VALOR VENDA"})
         )
 
-    # 8. Ranking de margem de lucro por categoria
+    # 8. Ranking de margem de lucro por categoria (em percentual)
     def margin_ranking_by_category(self):
-        estoque = self.__read("CADASTRO ESTOQUE")
-        produtos = self.__read("CADASTRO_PRODUTOS")
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        estoque = self.__read("estoque")
+        produtos = self.__read("produtos")
+        vendas = self.__read("vendas")
 
         estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
         produtos_estoque = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
         transacoes = vendas.merge(produtos_estoque, on="ID PRODUTO", how="left")
 
         transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
-        transacoes["MARGEM"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
+        transacoes["MARGEM_PERCENTUAL"] = ((transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]) / transacoes["VALOR UNITARIO"]) * 100
 
-        resultado = transacoes.groupby("CATEGORIA")["MARGEM"].mean().reset_index().sort_values(by="MARGEM", ascending=False)
-        resultado["RANKING"] = resultado["MARGEM"].rank(method="dense", ascending=False).astype(int)
+        resultado = transacoes.groupby("CATEGORIA")["MARGEM_PERCENTUAL"].mean().reset_index().sort_values(by="MARGEM_PERCENTUAL", ascending=False)
+        resultado["RANKING"] = resultado["MARGEM_PERCENTUAL"].rank(method="dense", ascending=False).astype(int)
+        
         return resultado
 
     # 9. Lista de produtos comprados por cliente
