@@ -15,5 +15,8 @@ def main():
     data = Metric("./database/data.xlsx", options)
     Plot(data.total_sales_by_category(), options).table()
     
+    #2
+    Plot(data.product_margin(), options).table()
+    
 if __name__ == "__main__": 
     main()

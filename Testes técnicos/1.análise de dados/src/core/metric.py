@@ -28,14 +28,37 @@ class Metric():
 
     # 2. Margem de lucro dos produtos
     def product_margin(self):
-        estoque = self.__read("CADASTRO ESTOQUE")
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        estoque = self.__read("estoque")
+        vendas = self.__read("vendas")
+        produtos = self.__read("produtos")
 
         estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
-        vendas = vendas.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
-        vendas["VALOR VENDA UNITARIO"] = vendas["VALOR ITEM"] / vendas["QTD ITEM"]
-        vendas["MARGEM"] = vendas["VALOR VENDA UNITARIO"] - vendas["VALOR UNITARIO"]
-        return vendas[["ID PRODUTO", "VALOR UNITARIO", "VALOR VENDA UNITARIO", "MARGEM"]]
+
+        vendas_produtos = vendas.merge(
+            produtos[["ID PRODUTO", "ID ESTOQUE", "NOME PRODUTO", "CATEGORIA"]],
+            on="ID PRODUTO",
+            how="left"
+        )
+        
+        vendas_estoque = vendas_produtos.merge(
+            estoque[["ID ESTOQUE", "VALOR UNITARIO"]],
+            on="ID ESTOQUE",
+            how="left"
+        )
+        vendas_estoque["VALOR VENDA UNITARIO"] = vendas_estoque["VALOR ITEM"] / vendas_estoque["QTD ITEM"]
+        vendas_estoque["MARGEM"] = vendas_estoque["VALOR VENDA UNITARIO"] - vendas_estoque["VALOR UNITARIO"]
+        vendas_estoque["MARGEM %"] = (vendas_estoque["MARGEM"] / vendas_estoque["VALOR UNITARIO"]) * 100
+        vendas_estoque["MARGEM %"] = vendas_estoque["MARGEM %"].round(2)
+
+        return vendas_estoque[[
+            "ID PRODUTO",
+            "NOME PRODUTO",
+            "CATEGORIA",
+            "VALOR UNITARIO",
+            "VALOR VENDA UNITARIO",
+            "MARGEM",
+            "MARGEM %"
+        ]].sort_values(by=["CATEGORIA", "MARGEM %"], ascending=[True, False])
 
     # 3. Ranking de clientes por quantidade comprada por mês
     def client_ranking_by_month(self):
