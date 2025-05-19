@@ -37,7 +37,10 @@ def main():
     Plot(data.margin_ranking_by_category(), options).table()
     
     #9
-    Plot(data.margin_ranking_by_category(), options).table()
+    Plot(data.products_bought_by_clients(), options).table()
+    
+    #10
+    Plot(data.product_ranking_by_stock(), options).table()
     
 
 if __name__ == "__main__": 

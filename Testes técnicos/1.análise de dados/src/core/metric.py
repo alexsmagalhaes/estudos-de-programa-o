@@ -182,56 +182,11 @@ class Metric():
 
     # 10. Ranking de produtos por quantidade de estoque
     def product_ranking_by_stock(self):
-        produtos = self.__read("CADASTRO_PRODUTOS")
-        estoque = self.__read("CADASTRO ESTOQUE")
+        produtos = self.__read("produtos")
+        estoque = self.__read("estoque")
 
         merged = produtos.merge(estoque, on="ID ESTOQUE", how="left")
         agrupado = merged.groupby("ID PRODUTO")[["NOME PRODUTO", "QTD ESTOQUE"]].max().reset_index()
         agrupado["RANKING"] = agrupado["QTD ESTOQUE"].rank(method="dense", ascending=False).astype(int)
+        
         return agrupado.sort_values(by="RANKING")
-
-
-    #Determina o items mais lucrativos
-    def ranking_margin_by_category(self):
-        estoque = self.__read("estoque")
-        transacoes = self.__read("transacoes")
-        produtos = self.__read("produtos")
-
-        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
-        produtos = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
-        transacoes = transacoes.merge(produtos, on="ID PRODUTO", how="left")
-
-        transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
-        transacoes["MARGEM UNITARIA"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
-        transacoes["MARGEM TOTAL"] = transacoes["MARGEM UNITARIA"] * transacoes["QTD ITEM"]
-
-        resultado = transacoes.groupby("CATEGORIA").agg({
-            "MARGEM TOTAL": "sum",
-            "QTD ITEM": "sum"
-        }).reset_index()
-
-        resultado["MARGEM MÉDIA UNITÁRIA"] = resultado["MARGEM TOTAL"] / resultado["QTD ITEM"]
-        resultado = resultado.sort_values(by="MARGEM TOTAL", ascending=False)
-        return resultado
-
-    def ranking_margin_by_product(self):
-        estoque = self.__read("estoque")
-        transacoes = self.__read("transacoes")
-        produtos = self.__read("produtos")
-
-        estoque["VALOR UNITARIO"] = estoque["VALOR ESTOQUE"] / estoque["QTD ESTOQUE"]
-        produtos = produtos.merge(estoque[["ID ESTOQUE", "VALOR UNITARIO"]], on="ID ESTOQUE", how="left")
-        transacoes = transacoes.merge(produtos, on="ID PRODUTO", how="left")
-
-        transacoes["VALOR VENDA UNITARIO"] = transacoes["VALOR ITEM"] / transacoes["QTD ITEM"]
-        transacoes["MARGEM UNITARIA"] = transacoes["VALOR VENDA UNITARIO"] - transacoes["VALOR UNITARIO"]
-        transacoes["MARGEM TOTAL"] = transacoes["MARGEM UNITARIA"] * transacoes["QTD ITEM"]
-
-        resultado = transacoes.groupby(["ID PRODUTO", "NOME PRODUTO"]).agg({
-            "MARGEM TOTAL": "sum",
-            "QTD ITEM": "sum"
-        }).reset_index()
-
-        resultado["MARGEM MÉDIA UNITÁRIA"] = resultado["MARGEM TOTAL"] / resultado["QTD ITEM"]
-        resultado = resultado.sort_values(by="MARGEM TOTAL", ascending=False)
-        return resultado
