@@ -15,8 +15,8 @@ class Metric():
 
     # 1. Total de vendas por categoria
     def total_sales_by_category(self):
-        produtos = self.__read("CADASTRO_PRODUTOS")
-        vendas = self.__read("TRANSAÇÕES NOTAS DE VENDAS")
+        produtos = self.__read("produtos")
+        vendas = self.__read("vendas")
 
         merged = produtos.merge(vendas, on="ID PRODUTO", how="left")
         return (
