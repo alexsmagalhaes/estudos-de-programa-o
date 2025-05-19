@@ -26,6 +26,10 @@ def main():
     
     #5
     Plot(data.product_sales_ranking_by_qty(), options).table()
+    
+    #6
+    Plot(data.product_sales_ranking_by_value(), options).table()
+    
 
 if __name__ == "__main__": 
     main()
