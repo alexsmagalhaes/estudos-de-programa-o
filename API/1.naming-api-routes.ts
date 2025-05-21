@@ -1,13 +1,13 @@
 //📦 POST   /adicionarProduto     →   /produtos
 //🔹 Regra: Use substantivos no plural
 
-//🔍 GET    /obterProduto/123     →   /produtos/123
+//🔍 PUT    /atualizarProduto/123     →   /produtos/123
 //🔹 Regra: A ação vem do verbo HTTP (GET, POST, PUT, DELETE)
 
 //🔡 GET    /PedidosPendentes     →   /pedidos-pendentes
 //🔹 Regra: Use letras minúsculas e kebab-case para palavras compostas
 
-//🚫 GET    /produtos/            →   /produtos
+//🚫 DELETE /produtos/123/      →   /produtos/123
 //🔹 Regra: Não termine com barra
 
 /*
