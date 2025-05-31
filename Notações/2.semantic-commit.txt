@@ -1,0 +1,47 @@
+📦 Uso de Commits Semânticos
+
+# feat(auth): adiciona tela de login
+
+📏 Use `feat` para novas funcionalidades. 
+
+# fix(carrinho): corrige erro no cálculo de totais
+
+📏 Use `fix` para correções. 
+
+# docs(readme): atualiza instruções de instalação
+
+📏 Use `docs` para mudanças na documentação. 
+Inclua o escopo entre parênteses.
+
+# refactor(produto): extrai lógica de formatação de preço
+
+📏 Use `refactor` para melhorias internas sem 
+alterar o comportamento externo.
+
+# chore(deps): remove dependência não utilizada
+
+📏 Use `chore` para tarefas de manutenção que não afetam
+o código de produção. (ex: dependências, configs).
+
+# style(ui): ajusta espaçamento entre botões
+
+📏 Use `style` para mudanças puramente visuais 
+(ex: formatação, indentação, espaçamento).
+
+# test(produto): adiciona testes para criação de produto
+
+📏 Use `test` para criação ou atualização de testes automatizados.
+
+# revert: desfaz commit que removia validação no login
+
+📏 Use `revert` para reverter um commit anterior.
+
+# 📘 Dicas
+
+- Comece com um tipo semântico (`feat`, `fix`, `docs`, etc.)
+- Use *verbo no imperativo*, em *letras minúsculas*
+- O escopo é *opcional*, mas recomendado (entre parênteses)
+- Não termine com ponto final
+- Seja claro, objetivo e descritivo
+
+✅ Salve o post para consultas posteriores!
